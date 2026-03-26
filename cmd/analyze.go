@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Hoaqim/optiflow-cli/pkg/workflow"
 	"github.com/spf13/cobra"
 )
 
@@ -24,16 +25,17 @@ Example:
 			fmt.Printf("[DEBUG] Starting analysis on: %s\n", targetPath)
 		}
 
-		if _, err := os.Stat(targetPath); os.IsNotExist(err) {
-			fmt.Printf("Error: Path '%s' does not exist.\n", targetPath)
+		wf, err := workflow.Parse(targetPath)
+		if err != nil {
+			fmt.Printf("Syntax Error in %s:\n%v\n", targetPath, err)
 			os.Exit(1)
 		}
 
-		// Placeholder for Phase 2, 3, and 4
 		fmt.Printf("Analyzing %s...\n", targetPath)
-		fmt.Println("✓ Syntax Validated")
-		fmt.Println("✓ Security Policies Enforced")
-		fmt.Println("✓ Cost Projected: $0.00")
+		fmt.Printf("Syntax Validated (Found %d jobs in '%s')\n", len(wf.Jobs), wf.Name)
+
+		fmt.Println("Security Scanning... (Pending Phase 3)")
+		fmt.Println("Cost Projection... (Pending Phase 4)")
 	},
 }
 
