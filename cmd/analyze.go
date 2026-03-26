@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Hoaqim/optiflow-cli/pkg/finops"
 	"github.com/Hoaqim/optiflow-cli/pkg/security"
 	"github.com/Hoaqim/optiflow-cli/pkg/workflow"
 	"github.com/spf13/cobra"
@@ -39,17 +40,25 @@ Example:
 		violations := scanner.Scan(wf)
 
 		if len(violations) > 0 {
-			fmt.Printf("\n❌ Security Policies Enforced: Found %d Violations\n", len(violations))
+			fmt.Printf("\nSecurity Policies Enforced: Found %d Violations\n", len(violations))
 			for _, v := range violations {
 				fmt.Printf("  [%s] %s (Job: %s, Step: %s)\n", v.Severity, v.RuleName, v.JobName, v.StepName)
 				fmt.Printf("      -> %s\n", v.Description)
 			}
 			os.Exit(1)
 		} else {
-			fmt.Println("✓ Security Policies Enforced (0 Violations)")
+			fmt.Println("Security Policies Enforced (0 Violations)")
 		}
 
-		fmt.Println("\n⏳ Cost Projection... (Pending Phase 4)")
+		projection := finops.Estimate(wf)
+
+		fmt.Println("\nShift-Left Cost Projections:")
+		for _, jc := range projection.Jobs {
+			fmt.Printf("  - Job [%s] on '%s' ($%.3f/min)\n", jc.JobName, jc.MachineType, jc.CostPerMinute)
+		}
+		fmt.Printf("\n  Est. Cost Per Run:   $%.3f\n", projection.TotalEstimated)
+		fmt.Printf("  Worst-Case Timeout:  $%.3f\n", projection.TotalWorstCase)
+		fmt.Printf("  Est. Monthly Impact: $%.2f (Assuming 100 runs/mo)\n", projection.MonthlyProjected)
 	},
 }
 
