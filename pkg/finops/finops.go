@@ -43,14 +43,22 @@ func Estimate(wf *workflow.Workflow) Projection {
 	proj := Projection{}
 
 	for jobName, job := range wf.Jobs {
-		machine := strings.ToLower(job.RunsOn)
+		var machineStr string
+
+		if len(job.RunsOn) > 0 {
+			machineStr = job.RunsOn[0]
+		} else {
+			machineStr = "ubuntu-latest"
+		}
+		machine := strings.ToLower(machineStr)
+
 		costPerMin, exists := PricingMatrix[machine]
 		if !exists {
 			fmt.Printf("Runner unknown! Set it up with --runner. Defaulting to ubuntu")
 			costPerMin = 0.008
 		}
 
-		timeout := float64(job.Timeout)
+		timeout := job.TimeoutMinutes
 		if timeout == 0 {
 			timeout = DefaultGitHubTimeout
 		}
@@ -60,7 +68,7 @@ func Estimate(wf *workflow.Workflow) Projection {
 
 		proj.Jobs = append(proj.Jobs, JobCost{
 			JobName:       jobName,
-			MachineType:   job.RunsOn,
+			MachineType:   machineStr,
 			CostPerMinute: costPerMin,
 			EstimatedCost: estCost,
 			WorstCaseCost: worstCost,

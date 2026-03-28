@@ -1,5 +1,25 @@
 package workflow
 
+import "gopkg.in/yaml.v3"
+
+type StringOrSlice []string
+
+func (s *StringOrSlice) UnmarshalYAML(value *yaml.Node) error {
+	var single string
+	if err := value.Decode(&single); err == nil {
+		*s = []string{single}
+		return nil
+	}
+
+	var slice []string
+	if err := value.Decode(&slice); err == nil {
+		*s = slice
+		return nil
+	}
+
+	return nil
+}
+
 type Workflow struct {
 	Name        string            `yaml:"name,omitempty"`
 	RunName     string            `yaml:"run-name,omitempty"`
@@ -13,9 +33,9 @@ type Workflow struct {
 type Job struct {
 	Name           string            `yaml:"name,omitempty"`
 	Permissions    map[string]string `yaml:"permissions,omitempty"`
-	Needs          any               `yaml:"needs,omitempty"` // Can be string or []string
+	Needs          StringOrSlice     `yaml:"needs,omitempty"` // Can be string or []string
 	If             string            `yaml:"if,omitempty"`
-	RunsOn         any               `yaml:"runs-on"` // Can be string or []string (e.g., matrix)
+	RunsOn         StringOrSlice     `yaml:"runs-on"` // Can be string or []string (e.g., matrix)
 	Environment    any               `yaml:"environment,omitempty"`
 	Concurrency    any               `yaml:"concurrency,omitempty"`
 	Outputs        map[string]string `yaml:"outputs,omitempty"`
